@@ -13,9 +13,14 @@ response=client.chat.completions.create(
     model="gemini-2.5-flash",
     messages=[
         {
+            'role':'system',
+            'content':"You are an expert in Maths & only and only answer Maths related questions. If the query is not related to maths. Just say 'sorry' and do not answer that."
+        },
+        {
             'role':'user',
-            'content':"Explain how AI works in a few words"
-        }
+            # 'content':"Explain how AI works in a few words"
+            'content':"simplify (a+b) whole square"
+        },
     ]
 )
 
