@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import os
 import json
 import requests
+from pydantic import BaseModel,Field
+from typing import Optional
 
 load_dotenv()
 
@@ -21,6 +23,12 @@ def getWeather(city:str):
 availableTools={
     'getWeather':getWeather
 }
+
+class MyOutputFormat(BaseModel):
+    step:str=Field(...,description='The ID of the step. Example: PLAN,OUTPUT,TOOL, etc.')
+    content:Optional[str]=Field(None,description='The optional string content for the step')
+    tool:Optional[str]=Field(None,description='The ID of the tool to call.')
+    input:Optional[str]=Field(None,description='The input params for the tool.')
 
 systemPrompt='''
             You're an expert AI Assistant in resolving user queries using chain of thought.
@@ -142,26 +150,26 @@ while True:
     })
 
     while True:
-        response=client.chat.completions.create(
+        response=client.chat.completions.parse(
             model="gemini-2.5-flash",
-            response_format={'type':'json_object'},
+            response_format=MyOutputFormat,
             messages=msgHistory
         )
         rawResult=response.choices[0].message.content
         msgHistory.append({'role':'assistant','content':rawResult})
-        parsedResult=json.loads(rawResult)
+        parsedResult=response.choices[0].message.parsed
 
-        if parsedResult.get('step')=='START':
-            print('\nStarting LLM Loop:',parsedResult.get('content'))
+        if parsedResult.step=='START':
+            print('\nStarting LLM Loop:',parsedResult.content)
             continue
 
-        if parsedResult.get('step')=='PLAN':
-            print('\nPlanning:',parsedResult.get('content'))
+        if parsedResult.step=='PLAN':
+            print('\nPlanning:',parsedResult.content)
             continue
 
-        if parsedResult.get('step')=='TOOL':
-            toolToCall=parsedResult.get('tool')
-            toolInput=parsedResult.get('input')
+        if parsedResult.step=='TOOL':
+            toolToCall=parsedResult.tool
+            toolInput=parsedResult.input
             print(f'Tool: {toolToCall}({toolInput})')
             toolResponse=availableTools[toolToCall](toolInput)
             print(f'Tool Response: ${toolResponse}')
@@ -174,8 +182,8 @@ while True:
             })
             continue
 
-        if parsedResult.get('step')=='OUTPUT':
-            print('\nDone:',parsedResult.get('content'))
+        if parsedResult.step=='OUTPUT':
+            print('\nDone:',parsedResult.content)
             break
 
 # response=client.chat.completions.create(
