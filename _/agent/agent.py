@@ -13,6 +13,10 @@ client=Client(
     base_url='https://generativelanguage.googleapis.com/v1beta'
 )
 
+def runCmd(cmd:str):
+    result=os.system(cmd)
+    return result
+
 def getWeather(city:str):
     url=f'https://wttr.in/{city.lower()}?format=%C+%t'
     res=requests.get(url)
@@ -21,7 +25,8 @@ def getWeather(city:str):
     return('Something went wrong')
 
 availableTools={
-    'getWeather':getWeather
+    'getWeather':getWeather,
+    'runCmd':runCmd,
 }
 
 class MyOutputFormat(BaseModel):
@@ -53,6 +58,7 @@ systemPrompt='''
 
             Available Tools:
             - getWeather(city:str): Takes city name as an input string & returns the weather information about the city
+            - runCmd(cmd:str): Takes a system linux command as string executes the command on the user's system and returns the output from that command
 
             Example 1:
             START: Can you solve 2+3*5/10
