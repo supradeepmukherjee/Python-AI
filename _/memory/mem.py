@@ -47,6 +47,13 @@ except Exception:
         vectors_config=VectorParams(size=EMBED_DIM, distance=Distance.COSINE)
     )
 
+NEO4J_URI=os.getenv('NEO4J_URI')
+NEO4J_USERNAME=os.getenv('NEO4J_USERNAME')
+NEO4J_PASSWORD=os.getenv('NEO4J_PASSWORD')
+print('\n',NEO4J_URI)
+print('\n',NEO4J_USERNAME)
+print('\n',NEO4J_PASSWORD)
+
 memory = Memory.from_config({
     "version": "v1.1",
     "embedder": {
@@ -60,6 +67,14 @@ memory = Memory.from_config({
         "config": {
             "api_key": GEMINI_KEY,
             "model": "gemini-2.5-flash"
+        }
+    },
+    'graph_store':{
+        'provider':'neo4j',
+        'config':{
+            'url':NEO4J_URI,
+            'username':NEO4J_USERNAME,
+            'password':NEO4J_PASSWORD,
         }
     },
     "vector_store": {
